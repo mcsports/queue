@@ -1,0 +1,26 @@
+[versions]
+shadow = "8.3.3"
+kotlin = "2.0.20"
+kotlin-coroutines = "1.9.0"
+mcsports-proto = "v2025.03.18.201856"
+grpc = "1.71.0"
+grpc-kotlin = "1.4.1"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+
+mcsports-proto = { module = "club.mcsports.generated:proto-kotlin", version.ref = "mcsports-proto" }
+
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-kotlin-stub = { module = "io.grpc:grpc-kotlin-stub", version.ref = "grpc-kotlin" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+
+[bundles]
+grpc = ["grpc-kotlin-stub", "grpc-stub", "grpc-protobuf", "grpc-netty-shaded"]
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
