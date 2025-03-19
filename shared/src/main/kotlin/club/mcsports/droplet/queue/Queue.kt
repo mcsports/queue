@@ -6,25 +6,30 @@ import java.util.*
 data class Queue(
         val id: UUID,
         val type: String,
-        val status: QueueStatus,
+        var status: QueueStatus,
         val players: MutableList<UUID>,
+        val capacity: Long = 0,
+        var countdownMillis: Long? = null,
 ) {
 
     fun toDefinition(): com.mcsports.queue.v1.Queue {
-        return com.mcsports.queue.v1.Queue.newBuilder()
+        val builder = com.mcsports.queue.v1.Queue.newBuilder()
                 .setUniqueId(id.toString())
                 .setStatus(status)
+                .setType(type)
                 .addAllPlayerIds(players.map { it.toString() })
-                .build()
+        if (countdownMillis != null) builder.setCountdownMillis(countdownMillis!!)
+        return builder.build()
     }
 
     companion object {
         fun fromDefinition(definition: com.mcsports.queue.v1.Queue): Queue {
             return Queue(
                     id = UUID.fromString(definition.uniqueId),
-                    type = "",
+                    type = definition.type,
                     status = definition.status,
-                    players = definition.playerIdsList.map { UUID.fromString(it) }.toMutableList()
+                    players = definition.playerIdsList.map { UUID.fromString(it) }.toMutableList(),
+                    countdownMillis = if (definition.hasCountdownMillis()) definition.countdownMillis else null
             )
         }
     }

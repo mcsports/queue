@@ -2,7 +2,7 @@
 shadow = "8.3.3"
 kotlin = "2.0.20"
 kotlin-coroutines = "1.9.0"
-mcsports-proto = "v2025.03.19.100500"
+mcsports-proto = "v2025.03.19.102614"
 grpc = "1.71.0"
 grpc-kotlin = "1.4.1"
 
