@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     java
     alias(libs.plugins.kotlin)
@@ -5,13 +7,15 @@ plugins {
 }
 
 allprojects {
-    group = "club.mcsports.droplet"
+    group = "club.mcsports.droplet.queue"
     version = findProperty("version") ?: "1.0.0"
 
     repositories {
         mavenCentral()
         maven("https://repo.mcsports.club/snapshots")
         maven("https://repo.mcsports.club/releases")
+        maven("https://repo.simplecloud.app/snapshots")
+        maven("https://buf.build/gen/maven")
     }
 }
 
@@ -37,6 +41,15 @@ subprojects {
             apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
+    }
+
+    tasks.named("build") {
+        dependsOn("shadowJar")
+    }
+
+    tasks.named("shadowJar", ShadowJar::class.java) {
+        mergeServiceFiles()
+        archiveFileName.set("${rootProject.name}-${project.name}.jar")
     }
 
     tasks.test {

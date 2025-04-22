@@ -1,14 +1,21 @@
 package club.mcsports.droplet.queue
 
+import app.simplecloud.controller.shared.server.Server
+import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import com.mcsports.queue.v1.QueueStatus
 import java.util.*
 
 class QueueRepository(
-        private val types: QueueTypeRepository
+    private val types: QueueTypeRepository,
 ) {
 
     private val playersToQueue = mutableMapOf<UUID, UUID>()
     private val queues = mutableMapOf<UUID, Queue>()
+    private lateinit var reconciler: QueueStatusReconciler
+
+    fun setReconciler(reconciler: QueueStatusReconciler) {
+        this.reconciler = reconciler
+    }
 
     fun getQueueByPlayer(playerId: UUID): Queue? {
         return playersToQueue.firstNotNullOfOrNull { if (it.key == playerId) it.value else null }?.let { queues[it] }
@@ -18,64 +25,46 @@ class QueueRepository(
         if (!queues.containsKey(queueId)) return false
         queues.remove(queueId)
         playersToQueue.filter { it.value == queueId }.forEach { playersToQueue.remove(it.key) }
+        reconciler.clear(queueId)
         return true
     }
 
-    fun OnEnqueue(queue: Queue): Queue {
-        val type = types.get(queue.type)!!
-        if (queue.status == QueueStatus.NOT_ENOUGH_PLAYERS) {
-            if (queue.players.size >= type.minCapacity)
-                queue.status = QueueStatus.SEARCHING_SERVER
-        }
-        return queue
-    }
-
-    fun OnDequeue(queue: Queue): Queue {
-        val type = types.get(queue.type)!!
-        if (queue.status != QueueStatus.NOT_ENOUGH_PLAYERS) {
-            if (queue.players.size < type.minCapacity)
-                queue.status = QueueStatus.NOT_ENOUGH_PLAYERS
-        }
-        return queue
-    }
-
-    fun enqueue(queueType: String, playerIds: List<UUID>): Queue? {
+    suspend fun enqueue(queueType: String, playerIds: List<UUID>): Queue? {
         val type = types.get(queueType) ?: return null
         if (playerIds.any { playersToQueue.containsKey(it) }) return null
-        var queue = findQueue(queueType, playerIds.size) ?: createQueue(type)
+        val queue = findQueue(queueType, playerIds.size) ?: createQueue(type)
         queue.players.addAll(playerIds)
-        queue = OnEnqueue(queue)
         queues[queue.id] = queue
         playerIds.forEach { playersToQueue[it] = queue.id }
+        reconciler.reconcile(queue.id)
         return queue
     }
 
     private fun createQueue(type: QueueType): Queue {
         val queue = Queue(
-                id = UUID.randomUUID(),
-                type = type.name,
-                capacity = type.maxCapacity,
-                players = mutableListOf(),
-                status = QueueStatus.NOT_ENOUGH_PLAYERS,
+            id = UUID.randomUUID(),
+            type = type.name,
+            capacity = type.maxCapacity,
+            players = mutableListOf(),
+            status = QueueStatus.NOT_ENOUGH_PLAYERS,
         )
         queues[queue.id] = queue
         return queue
     }
 
-    fun dequeue(playerId: UUID): Boolean {
+    suspend fun dequeue(playerId: UUID): Boolean {
         if (!playersToQueue.containsKey(playerId)) return false
-        var queue = getQueueByPlayer(playerId) ?: return false
+        val queue = getQueueByPlayer(playerId) ?: return false
         if (!playersToQueue.remove(playerId, queue.id)) return false
         if (!queue.players.remove(playerId)) {
             playersToQueue[playerId] = queue.id
             return false
         }
-        queue = OnDequeue(queue)
-        queues[queue.id] = queue
+        reconciler.reconcile(queue.id)
         return true
     }
 
-    fun dequeue(playerIds: List<UUID>): Boolean {
+    suspend fun dequeue(playerIds: List<UUID>): Boolean {
         return !playerIds.any { !dequeue(it) }
     }
 
@@ -85,6 +74,11 @@ class QueueRepository(
 
     fun getQueue(queueId: UUID): Queue? {
         return queues[queueId]
+    }
+
+    suspend fun updateInternalServer(queue: Queue, server: Server) {
+        if (server.uniqueId != queue.server?.uniqueId) return
+        queue.server = server
     }
 
     private fun findQueue(queueType: String, playerAmount: Int): Queue? {
