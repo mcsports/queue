@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":shared"))
     implementation(libs.bundles.log4j)
+    implementation(libs.minimessage)
     implementation(libs.clikt)
 }
 

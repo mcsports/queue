@@ -1,13 +1,19 @@
 package club.mcsports.droplet.queue
 
 import app.simplecloud.controller.api.ControllerApi
+import app.simplecloud.droplet.api.auth.AuthCallCredentials
 import app.simplecloud.droplet.api.auth.AuthSecretInterceptor
+import app.simplecloud.droplet.api.droplet.Droplet
 import app.simplecloud.droplet.player.api.PlayerApi
+import build.buf.gen.simplecloud.controller.v1.ControllerDropletServiceGrpcKt
+import club.mcsports.droplet.queue.controller.Attacher
 import club.mcsports.droplet.queue.launcher.QueueStartCommand
 import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import club.mcsports.droplet.queue.server.ServerFinder
 import club.mcsports.droplet.queue.service.QueueDataService
 import club.mcsports.droplet.queue.service.QueueInteractionService
+import club.mcsports.droplet.queue.visualizer.ActionbarVisualizer
+import io.grpc.ManagedChannelBuilder
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -27,18 +33,42 @@ class QueueRuntime(
     private val controllerApi = ControllerApi.createCoroutineApi(args.authSecret)
     private val playerApi = PlayerApi.createCoroutineApi(args.authSecret)
     private val pubSubClient = controllerApi.getPubSubClient()
+    private val callCredentials = AuthCallCredentials(args.authSecret)
 
-    private val typeRepository = QueueTypeRepository()
+    private val typeRepository = QueueTypeRepositoryInitializer.create(args.queueTypesPath)
     private val queueRepository = QueueRepository(typeRepository)
     private val finder = ServerFinder(controllerApi, typeRepository)
-    val reconciler = QueueStatusReconciler(queueRepository, typeRepository, finder, playerApi)
+    val reconciler = QueueStatusReconciler(
+        queueRepository, typeRepository, finder, playerApi,
+        ActionbarVisualizer(playerApi)
+    )
 
     private val server = createGrpcServer()
+    private val channel =
+        ManagedChannelBuilder.forAddress(args.controllerGrpcHost, args.controllerGrpcPort).usePlaintext().build()
+    private val controllerStub = ControllerDropletServiceGrpcKt.ControllerDropletServiceCoroutineStub(channel)
+        .withCallCredentials(callCredentials)
+    private val attacher =
+        Attacher(Droplet("queue", "internal-queue", args.grpcHost, args.grpcPort, 8081), channel, controllerStub)
 
     suspend fun start() {
+        typeRepository.loadOrCreate(
+            mapOf(
+                "golf" to QueueType(
+                    name = "golf",
+                    group = "golf",
+                    maxCapacity = 10,
+                    minCapacity = 1
+                )
+            )
+        )
+        logger.info("Attaching to Controller...")
+        attacher.enforceAttachBlocking()
+        attacher.enforceAttach()
         queueRepository.setReconciler(reconciler)
         logger.info("Starting queue reconciler...")
         reconciler.startPeriodicReconciliation()
+        reconciler.startCountdownReconciliation()
         reconciler.registerServerRegistrationSubscriber(pubSubClient)
         startGrpcServer()
 

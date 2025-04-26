@@ -1,5 +1,9 @@
 dependencies {
-    api(libs.mcsports.proto) {
+    api(libs.mcsports.proto.kotlin) {
+        exclude("io.grpc")
+        exclude("io.netty")
+    }
+    api(libs.mcsports.proto.java) {
         exclude("io.grpc")
         exclude("io.netty")
     }

@@ -18,7 +18,7 @@ class ServerFinder(
 
 
     suspend fun findServer(queue: Queue): Server? {
-        val type = types.get(queue.type) ?: return null
+        val type = types.find(queue.type) ?: return null
         api.getServers().getServersByGroup(type.group).firstOrNull {
             it.properties["queue-id"] == queue.id.toString()
         }.let {
@@ -29,7 +29,7 @@ class ServerFinder(
     suspend fun freeServer(server: Server): Boolean {
         try {
             api.getServers().updateProperties(server.uniqueId) {
-                "queue-id" to null
+                "queue-id" to ""
             }
             return true
         } catch (e: Exception) {
@@ -49,7 +49,7 @@ class ServerFinder(
     }
 
     suspend fun reserveServer(queue: Queue): Server? {
-        val type = types.get(queue.type) ?: return null
+        val type = types.find(queue.type) ?: return null
         val server = api.getServers().getServersByGroup(type.group).firstOrNull {
             canReserveServer(queue, it)
         } ?: return null
@@ -59,8 +59,8 @@ class ServerFinder(
     }
 
     fun canReserveServer(queue: Queue, server: Server): Boolean {
-        val type = types.get(queue.type) ?: return false
-        return type.group == server.group && (!server.properties.containsKey("queue-id") || server.properties["queue-id"] == null || server.properties["queue-id"] == queue.id.toString())
+        val type = types.find(queue.type) ?: return false
+        return type.group == server.group && (!server.properties.containsKey("queue-id") || server.properties["queue-id"] == null || server.properties["queue-id"] == "" || server.properties["queue-id"] == queue.id.toString())
     }
 
     suspend fun reserveServer(queue: Queue, server: Server): Boolean {
@@ -71,7 +71,7 @@ class ServerFinder(
     }
 
     suspend fun requestNewServer(queue: Queue): Server? {
-        val type = types.get(queue.type) ?: return null
+        val type = types.find(queue.type) ?: return null
         val result = try {
             api.getServers().start(type.group) {
                 "queue-id" to queue.id.toString()

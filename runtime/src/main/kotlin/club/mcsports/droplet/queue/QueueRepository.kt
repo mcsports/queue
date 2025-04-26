@@ -30,7 +30,7 @@ class QueueRepository(
     }
 
     suspend fun enqueue(queueType: String, playerIds: List<UUID>): Queue? {
-        val type = types.get(queueType) ?: return null
+        val type = types.find(queueType) ?: return null
         if (playerIds.any { playersToQueue.containsKey(it) }) return null
         val queue = findQueue(queueType, playerIds.size) ?: createQueue(type)
         queue.players.addAll(playerIds)
@@ -74,6 +74,11 @@ class QueueRepository(
 
     fun getQueue(queueId: UUID): Queue? {
         return queues[queueId]
+    }
+
+    fun updateQueue(queue: Queue) {
+        if (!queues.containsKey(queue.id)) return
+        queues[queue.id] = queue
     }
 
     suspend fun updateInternalServer(queue: Queue, server: Server) {

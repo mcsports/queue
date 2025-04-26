@@ -22,8 +22,9 @@ plugins {
 
 rootProject.name = "queue"
 
-include("runtime", "plugin", "api", "shared")
-findProject("runtime")?.name = "queue-droplet"
-findProject("plugin")?.name = "queue-plugin"
-findProject("api")?.name = "queue-api"
-findProject("shared")?.name = "queue-shared"
+include("runtime", "plugin", "api", "shared", "api-lite")
+findProject("runtime")?.name = "${rootProject.name}-droplet"
+findProject("plugin")?.name = "${rootProject.name}-plugin"
+findProject("api")?.name = "${rootProject.name}-api"
+findProject("api-lite")?.name = "${rootProject.name}-api-lite"
+findProject("shared")?.name = "${rootProject.name}-shared"
