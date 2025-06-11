@@ -12,6 +12,7 @@ controller-api = "0.0.30-SNAPSHOT.f7cbeda"
 player-api = "0.0.1-SNAPSHOT.d490b2f"
 droplet-api = "0.0.1-dev.16b322c"
 plugin-api = "0.0.1-dev.1738295670168-f53f4db"
+party-api = "1.0.0"
 clikt = "5.0.1"
 velocity = "3.4.0-SNAPSHOT"
 minimessage = "4.20.0"
@@ -38,6 +39,7 @@ droplet-api = { module = "app.simplecloud.droplet.api:droplet-api", version.ref 
 controller-api = { module = "app.simplecloud.controller:controller-api", version.ref = "controller-api" }
 player-api = { module = "app.simplecloud.droplet.player:player-api", version.ref = "player-api" }
 plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "plugin-api" }
+party-api-lite = { module = "club.mcsports.droplet.party:api-lite", version.ref = "party-api" }
 velocity = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 

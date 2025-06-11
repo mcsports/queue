@@ -7,6 +7,7 @@ import app.simplecloud.droplet.api.droplet.Droplet
 import app.simplecloud.droplet.player.api.PlayerApi
 import build.buf.gen.simplecloud.controller.v1.ControllerDropletServiceGrpcKt
 import club.mcsports.droplet.queue.controller.Attacher
+import club.mcsports.droplet.queue.hook.PartyDropletHook
 import club.mcsports.droplet.queue.launcher.QueueStartCommand
 import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import club.mcsports.droplet.queue.server.ServerFinder
@@ -43,6 +44,7 @@ class QueueRuntime(
         ActionbarVisualizer(playerApi)
     )
 
+    private val partyHook = PartyDropletHook()
     private val server = createGrpcServer()
     private val channel =
         ManagedChannelBuilder.forAddress(args.controllerGrpcHost, args.controllerGrpcPort).usePlaintext().build()
