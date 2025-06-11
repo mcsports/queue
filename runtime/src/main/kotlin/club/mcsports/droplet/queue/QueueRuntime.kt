@@ -98,7 +98,7 @@ class QueueRuntime(
     private fun createGrpcServer(): Server {
         return ServerBuilder.forPort(args.grpcPort)
             .addService(QueueInteractionService(queueRepository))
-            .addService(QueueDataService(queueRepository))
+            .addService(QueueDataService(queueRepository, typeRepository))
             .intercept(AuthSecretInterceptor(args.grpcHost, args.authorizationPort))
             .build()
     }

@@ -5,6 +5,7 @@ import club.mcsports.droplet.queue.Queue
 import club.mcsports.droplet.queue.api.DataApi
 import com.mcsports.queue.v1.*
 import io.grpc.ManagedChannel
+import java.util.*
 
 class QueueDataApiCoroutineImpl(
     credentials: AuthCallCredentials,
@@ -38,5 +39,21 @@ class QueueDataApiCoroutineImpl(
         } catch (_: Exception) {
             return false
         }
+    }
+
+    override suspend fun getAllQueueTypes(): List<QueueType> {
+        return api.getAllQueueTypes(getAllQueueTypesRequest { }).typesList
+    }
+
+    override suspend fun getQueueByPlayer(player: UUID): Queue? {
+        return api.getQueueByPlayer(getQueueByPlayerRequest {
+            this.playerId = player.toString()
+        }).result?.let { Queue.fromDefinition(it) }
+    }
+
+    override suspend fun getQueueTypePlayerInformation(type: String): GetQueueTypePlayerInformationResponse {
+        return api.getQueueTypePlayerInformation(getQueueTypePlayerInformationRequest {
+            this.type = type
+        })
     }
 }

@@ -72,6 +72,11 @@ class QueueRepository(
         return queues.values.toList()
     }
 
+    fun getAllQueuesByType(type: String): List<Queue> {
+        return queues.values.filter { it.type == type }.toList()
+    }
+
+
     fun getQueue(queueId: UUID): Queue? {
         return queues[queueId]
     }
@@ -81,6 +86,7 @@ class QueueRepository(
         queues[queue.id] = queue
     }
 
+    //TODO: find out if this is still needed
     suspend fun updateInternalServer(queue: Queue, server: Server) {
         if (server.uniqueId != queue.server?.uniqueId) return
         queue.server = server
