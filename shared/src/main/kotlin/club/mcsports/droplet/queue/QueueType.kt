@@ -1,7 +1,6 @@
 package club.mcsports.droplet.queue
 
 import com.mcsports.queue.v1.QueueType
-import com.mcsports.queue.v1.queueType
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
@@ -14,12 +13,12 @@ data class QueueType(
 ) {
 
     fun toDefinition(): QueueType {
-        return queueType {
-            this.name = name
-            this.group = group
-            this.maxCapacity = maxCapacity
-            this.minCapacity = minCapacity
-        }
+        return QueueType.newBuilder()
+            .setName(name)
+            .setGroup(group)
+            .setMaxCapacity(maxCapacity.toInt())
+            .setMinCapacity(minCapacity.toInt())
+            .build()
     }
 
     companion object {
