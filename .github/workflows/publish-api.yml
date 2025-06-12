@@ -28,7 +28,7 @@ jobs:
 
       - name: Set COMMIT_HASH if on develop
         if: github.ref == 'refs/heads/develop'
-        run: echo "COMMIT_HASH=${{ github.sha }}" >> $GITHUB_ENV
+        run: echo "COMMIT_HASH=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
       - name: Publish package
         run: ./gradlew publish
