@@ -1,8 +1,12 @@
 package club.mcsports.droplet.queue
 
 import app.simplecloud.controller.shared.server.Server
+import app.simplecloud.droplet.player.api.PlayerApi
+import app.simplecloud.plugin.api.shared.extension.text
+import club.mcsports.droplet.queue.extension.fetchPlayer
 import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import com.mcsports.queue.v1.QueueStatus
+import io.grpc.Status
 import java.util.*
 
 class QueueRepository(
@@ -29,9 +33,25 @@ class QueueRepository(
         return true
     }
 
-    suspend fun enqueue(queueType: String, playerIds: List<UUID>): Queue? {
-        val type = types.find(queueType) ?: return null
-        if (playerIds.any { playersToQueue.containsKey(it) }) return null
+    suspend fun enqueue(queueType: String, playerIds: List<UUID>): Queue {
+        val type = types.find(queueType) ?: run {
+            playerIds.forEach { uuid ->
+                val player = uuid.fetchPlayer()
+                player.sendMessage(text("${Color.RED} There's no queue with the name $queueType."))
+            }
+
+            throw Status.NOT_FOUND.withDescription("Failed to enqueue: Cannot find queue $queueType").asRuntimeException()
+        }
+
+        if (playerIds.any { playersToQueue.containsKey(it) }) {
+            playerIds.forEach { uuid ->
+                val player = uuid.fetchPlayer()
+                player.sendMessage(text("${Color.RED} Some of the players you were enqueued with are already in a queue."))
+            }
+
+            throw Status.FAILED_PRECONDITION.withDescription("Failed to enqueue: Some players are already in a queue").asRuntimeException()
+        }
+
         val queue = findQueue(queueType, playerIds.size) ?: createQueue(type)
         queue.players.addAll(playerIds)
         queues[queue.id] = queue

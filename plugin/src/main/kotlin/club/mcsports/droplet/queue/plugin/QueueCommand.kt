@@ -6,8 +6,6 @@ import com.velocitypowered.api.proxy.Player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 
 class QueueCommand(
     private val queueApi: QueueApi.Coroutine
@@ -17,12 +15,7 @@ class QueueCommand(
         val type = invocation.arguments()[0]
         val player = invocation.source() as? Player ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            val queue = queueApi.getInteraction().enqueue(type, player.uniqueId)
-            if (queue == null) {
-                player.sendMessage(Component.text("Failed to enqueue").color(NamedTextColor.RED))
-                return@launch
-            }
-            player.sendMessage(Component.text("Enqueued $type (${queue.id})").color(NamedTextColor.GREEN))
+            queueApi.getInteraction().enqueue(type, player.uniqueId)
         }
     }
 }
