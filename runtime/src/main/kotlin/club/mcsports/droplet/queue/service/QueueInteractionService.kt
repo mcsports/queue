@@ -1,6 +1,8 @@
 package club.mcsports.droplet.queue.service
 
 import club.mcsports.droplet.queue.QueueRepository
+import club.mcsports.droplet.queue.hook.PartyDropletHook
+import com.mcsports.party.v1.PartyRole
 import com.mcsports.queue.v1.DequeueRequest
 import com.mcsports.queue.v1.DequeueResponse
 import com.mcsports.queue.v1.EnqueueRequest
@@ -12,10 +14,29 @@ import io.grpc.Status
 import java.util.UUID
 
 class QueueInteractionService(
-    private val queues: QueueRepository
+    private val queues: QueueRepository,
 ) : QueueInteractionGrpcKt.QueueInteractionCoroutineImplBase() {
     override suspend fun enqueue(request: EnqueueRequest): EnqueueResponse {
-        val queue = queues.enqueue(request.queueName, request.playerIdsList.map { UUID.fromString(it) })
+        val tempPlayerIds = request.playerIdsList.toMutableList()
+
+        if(request.playerIdsList.size == 1) {
+            PartyDropletHook.api?.let { api ->
+                val enqueueUuid = UUID.fromString(request.playerIdsList.first())
+
+                val party = api.getData().getParty(enqueueUuid)
+                val enqueueMember = party.membersList.firstOrNull { it.uuid == enqueueUuid.toString() } ?: run {
+                    throw Status.DATA_LOSS.withDescription("Can not enqueue. Error while fetching party member").asRuntimeException()
+                }
+
+                if(enqueueMember.role != PartyRole.OWNER) throw Status.PERMISSION_DENIED.withDescription("Can not enqueue. You're not the party owner.")
+                    .asRuntimeException()
+
+                tempPlayerIds.clear()
+                tempPlayerIds.addAll(party.membersList.map { it.uuid })
+            }
+        }
+
+        val queue = queues.enqueue(request.queueName, tempPlayerIds.map { UUID.fromString(it) })
         if (queue == null) throw Status.INVALID_ARGUMENT.withDescription("Can not enqueue. Might be already in queue.")
             .asRuntimeException()
         return enqueueResponse {
