@@ -44,7 +44,6 @@ class QueueRuntime(
         ActionbarVisualizer(playerApi)
     )
 
-    private val partyHook = PartyDropletHook()
     private val server = createGrpcServer()
     private val channel =
         ManagedChannelBuilder.forAddress(args.controllerGrpcHost, args.controllerGrpcPort).usePlaintext().build()
