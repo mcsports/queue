@@ -75,7 +75,7 @@ class QueueRuntime(
         reconciler.registerServerRegistrationSubscriber(pubSubClient)
         startGrpcServer()
 
-        suspendCancellableCoroutine { continuation ->
+        suspendCancellableCoroutine<Any> { continuation ->
             Runtime.getRuntime().addShutdownHook(Thread {
                 server.shutdown()
                 continuation.resume(Unit) { cause, _, _ ->
