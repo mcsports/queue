@@ -1,12 +1,13 @@
 package club.mcsports.droplet.queue
 
 import app.simplecloud.controller.shared.server.Server
-import app.simplecloud.droplet.player.api.PlayerApi
 import app.simplecloud.plugin.api.shared.extension.text
 import club.mcsports.droplet.queue.extension.fetchPlayer
+import club.mcsports.droplet.queue.extension.log
 import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import com.mcsports.queue.v1.QueueStatus
 import io.grpc.Status
+import org.apache.logging.log4j.LogManager
 import java.util.*
 
 class QueueRepository(
@@ -15,6 +16,8 @@ class QueueRepository(
 
     private val playersToQueue = mutableMapOf<UUID, UUID>()
     private val queues = mutableMapOf<UUID, Queue>()
+    private val logger = LogManager.getLogger(QueueRepository::class.java)
+
     private lateinit var reconciler: QueueStatusReconciler
 
     fun setReconciler(reconciler: QueueStatusReconciler) {
@@ -40,7 +43,8 @@ class QueueRepository(
                 player.sendMessage(text("${Color.RED} There's no queue with the name $queueType."))
             }
 
-            throw Status.NOT_FOUND.withDescription("Failed to enqueue: Cannot find queue $queueType").asRuntimeException()
+            throw Status.NOT_FOUND.withDescription("Failed to enqueue: Cannot find queue $queueType")
+                .log(logger).asRuntimeException()
         }
 
         if (playerIds.any { playersToQueue.containsKey(it) }) {
@@ -49,7 +53,8 @@ class QueueRepository(
                 player.sendMessage(text("${Color.RED} Some of the players you were enqueued with are already in a queue."))
             }
 
-            throw Status.FAILED_PRECONDITION.withDescription("Failed to enqueue: Some players are already in a queue").asRuntimeException()
+            throw Status.FAILED_PRECONDITION.withDescription("Failed to enqueue: Some players are already in a queue")
+                .log(logger).asRuntimeException()
         }
 
         val queue = findQueue(queueType, playerIds.size) ?: createQueue(type)
@@ -107,7 +112,8 @@ class QueueRepository(
     }
 
     //TODO: find out if this is still needed
-    suspend fun updateInternalServer(queue: Queue, server: Server) {
+    //at least 'suspend' isn't ~ishde
+    fun updateInternalServer(queue: Queue, server: Server) {
         if (server.uniqueId != queue.server?.uniqueId) return
         queue.server = server
     }
