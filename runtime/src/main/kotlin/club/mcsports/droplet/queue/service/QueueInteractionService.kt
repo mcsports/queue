@@ -25,24 +25,18 @@ class QueueInteractionService(
 
     override suspend fun enqueue(request: EnqueueRequest): EnqueueResponse {
         try {
-            logger.info("Enqueue request received: ${request.queueName} for players ${request.playerIdsList.joinToString(", ")}")
             val tempPlayerIds = request.playerIdsList.toMutableSet()
 
             if(request.playerIdsList.size == 1) {
-                logger.info("Enqueue request is for a single player, checking for party hook...")
                 PartyDropletHook.api?.let { api ->
-                    logger.info("Party hook found, fetching party for player ${request.playerIdsList.first()}")
                     val enqueueUuid = UUID.fromString(request.playerIdsList.first())
                     val party = api.getData().getParty(enqueueUuid)
-                    logger.info("Player is in party")
                     val enqueuePlayer = enqueueUuid.fetchPlayer()
-                    logger.info("Player was fetched successfully")
 
                     val enqueueMember = party.membersList.firstOrNull { it.uuid == enqueueUuid.toString() } ?: run {
                         enqueuePlayer.sendMessage(text("${Color.RED} Failed to fetch your party member data. Please call an administrator about this."))
                         throw Status.DATA_LOSS.withDescription("Failed to enqueue: Error while fetching party member").log(logger).asRuntimeException()
                     }
-                    logger.info("Member was fetched successfully")
 
                     if(enqueueMember.role != PartyRole.OWNER) {
                         enqueuePlayer.sendMessage(text("${Color.RED} You must be the party owner in order to enqueue."))
@@ -51,17 +45,13 @@ class QueueInteractionService(
                     }
 
                     tempPlayerIds.addAll(party.membersList.map { it.uuid })
-                    logger.info("All players (${party.membersList.size}) added to enqueue request: ${tempPlayerIds.joinToString(", ")}")
                 }
             }
 
             val queue = queues.enqueue(request.queueName, tempPlayerIds.map { UUID.fromString(it) })
-            logger.info("gettin' q already ngr")
-
             tempPlayerIds.forEach { uuid ->
                 uuid.fetchPlayer().sendMessage(text("<white>You ${Color.GREEN}successfully</color> enqueued for ${request.queueName}."))
             }
-            logger.info("All players notified of successful enqueue.")
 
             return enqueueResponse {
                 queueId = queue.id.toString()
