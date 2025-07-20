@@ -1,25 +1,31 @@
 package club.mcsports.droplet.queue.plugin
 
+import app.simplecloud.plugin.api.shared.extension.text
+import club.mcsports.droplet.queue.Color
 import club.mcsports.droplet.queue.api.QueueApi
+import club.mcsports.droplet.queue.plugin.CommandHelp.sendHelp
 import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 
 class DequeueCommand(
-    private val queueApi: QueueApi.Coroutine
+    private val queueApi: QueueApi.Coroutine,
 ) : SimpleCommand {
     override fun execute(invocation: SimpleCommand.Invocation) {
-        val player = invocation.source() as? Player ?: return
+        val player = invocation.source() as? Player ?: run {
+            invocation.source().sendMessage(text("${Color.RED}You have to be a player to do this."))
+            return
+        }
+
+        if (invocation.arguments().isNotEmpty()) {
+            player.sendHelp()
+            return
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
-            if (!queueApi.getInteraction().dequeue(player.uniqueId)) {
-                player.sendMessage(Component.text("Failed to dequeue").color(NamedTextColor.RED))
-                return@launch
-            }
-            player.sendMessage(Component.text("Successfully dequeued.").color(NamedTextColor.GREEN))
+            queueApi.getInteraction().dequeue(player.uniqueId)
         }
     }
 }
