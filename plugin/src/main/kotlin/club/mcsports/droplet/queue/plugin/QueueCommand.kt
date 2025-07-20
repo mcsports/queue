@@ -21,7 +21,7 @@ class QueueCommand(
 
     override fun execute(invocation: SimpleCommand.Invocation) {
         val player = invocation.source() as? Player ?: run {
-            invocation.source().sendMessage(Glyphs.HOUR_GLASS.append(Component.text("You have to be a player to do this.").color(Color.RED
+            invocation.source().sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" You have to be a player to do this.").color(Color.RED
             )))
             return
         }

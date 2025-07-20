@@ -207,7 +207,7 @@ class QueueStatusReconciler(
         val server = queue.server ?: return null
         val serverId = "${server.group}-${server.numericalId}"
         queue.players.forEach { playerId ->
-            playerApi.getOnlinePlayer(playerId).sendMessage(Glyphs.HOUR_GLASS.append(Component.text("Starting game on server $serverId...").color(NamedTextColor.WHITE)))
+            playerApi.getOnlinePlayer(playerId).sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" Starting game on server $serverId...").color(NamedTextColor.WHITE)))
             playerApi.connectPlayer(playerId, serverId)
         }
         updateInternalState(queue.id, InternalState.FINISHED)

@@ -33,7 +33,7 @@ class QueueInteractionService(
         tempPlayerIds.forEach { uuid ->
             uuid.fetchPlayer()
                 .sendMessage(
-                    Glyphs.HOUR_GLASS.append(Component.text("You").color(NamedTextColor.WHITE).append(Component.text(" successfully ").color(Color.GREEN))
+                    Glyphs.HOUR_GLASS.append(Component.text(" You").color(NamedTextColor.WHITE).append(Component.text(" successfully ").color(Color.GREEN))
                         .append(Component.text("enqueued for ${request.queueName}.").color(NamedTextColor.WHITE))
                 ))
         }
@@ -48,7 +48,7 @@ class QueueInteractionService(
 
             request.playerIdsList.forEach { uuid ->
                 uuid.fetchPlayer()
-                    .sendMessage(Glyphs.HOUR_GLASS.append(Component.text("You aren't enqueued for any game.").color(Color.RED)))
+                    .sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" You aren't enqueued for any game.").color(Color.RED)))
             }
 
             throw Status.INVALID_ARGUMENT.withDescription(
@@ -58,7 +58,7 @@ class QueueInteractionService(
 
         request.playerIdsList.forEach { uuid ->
             uuid.fetchPlayer()
-                .sendMessage(Glyphs.HOUR_GLASS.append(Component.text("You successfully").color(NamedTextColor.WHITE).append(Component.text(" dequeued").color(Color.RED)).append(Component.text(".").color(NamedTextColor.WHITE))))
+                .sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" You successfully").color(NamedTextColor.WHITE).append(Component.text(" dequeued").color(Color.RED)).append(Component.text(".").color(NamedTextColor.WHITE))))
         }
         return dequeueResponse { }
     }

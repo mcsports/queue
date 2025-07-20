@@ -42,7 +42,7 @@ class PartyDropletHook(authSecret: String) {
         val enqueueMember = party?.getMember(enqueueUuid) ?: return setOf()
 
         if (enqueueMember.role != PartyRole.OWNER) {
-            enqueuePlayer.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("You must be the party owner in order to enqueue.").color(Color.RED)))
+            enqueuePlayer.sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" You must be the party owner in order to enqueue.").color(Color.RED)))
             throw Status.PERMISSION_DENIED.withDescription("Failed to enqueue: ${enqueueMember.name} isn't the party owner")
                 .log(logger).asRuntimeException()
         }

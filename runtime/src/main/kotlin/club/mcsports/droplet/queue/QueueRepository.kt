@@ -41,7 +41,7 @@ class QueueRepository(
         val type = types.find(queueType) ?: run {
             playerIds.forEach { uuid ->
                 val player = uuid.fetchPlayer()
-                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("There's no queue with the name $queueType.").color(Color.RED)))
+                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" There's no queue with the name $queueType.").color(Color.RED)))
             }
 
             throw Status.NOT_FOUND.withDescription("Failed to enqueue: Cannot find queue $queueType")
@@ -51,7 +51,7 @@ class QueueRepository(
         if (playerIds.any { playersToQueue.containsKey(it) }) {
             playerIds.forEach { uuid ->
                 val player = uuid.fetchPlayer()
-                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("Some of the players you were enqueued with are already in a queue.").color(Color.RED)))
+                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text(" Some of the players you were enqueued with are already in a queue.").color(Color.RED)))
             }
 
             throw Status.FAILED_PRECONDITION.withDescription("Failed to enqueue: Some players are already in a queue")
