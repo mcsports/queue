@@ -38,6 +38,8 @@ class QueueRuntime(
     private val pubSubClient = controllerApi.getPubSubClient()
     private val callCredentials = AuthCallCredentials(args.authSecret)
 
+    private val partyDropletHook = PartyDropletHook(args.authSecret)
+
     private val typeRepository = QueueTypeRepositoryInitializer.create(args.queueTypesPath)
     private val queueRepository = QueueRepository(typeRepository)
     private val finder = ServerFinder(controllerApi, typeRepository)
@@ -100,7 +102,7 @@ class QueueRuntime(
 
     private fun createGrpcServer(): Server {
         return ServerBuilder.forPort(args.grpcPort)
-            .addService(QueueInteractionService(queueRepository))
+            .addService(QueueInteractionService(queueRepository, partyDropletHook))
             .addService(QueueDataService(queueRepository, typeRepository))
             .intercept(AuthSecretInterceptor(args.grpcHost, args.authorizationPort))
             .build()
