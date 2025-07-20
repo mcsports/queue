@@ -7,7 +7,11 @@ object PartyDropletHook {
     private val logger = LogManager.getLogger(PartyDropletHook::class.java)
 
     val api = try {
-        PartyApi.createCoroutineApi()
+        PartyApi.createCoroutineApi(
+            authSecret,
+            System.getenv("PARTY_HOST") ?: "0.0.0.0",
+            System.getenv("PARTY_PORT")?.toInt() ?: 5831
+        )
     } catch (exception: Exception) {
         if(exception is ClassNotFoundException) {
             logger.warn("Failed to load party api: Couldn't find api classes. No party features will be considered")
