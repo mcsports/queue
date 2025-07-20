@@ -25,7 +25,7 @@ class QueueInteractionService(
         val queue = queues.enqueue(request.queueName, tempPlayerIds.map { UUID.fromString(it) })
         tempPlayerIds.forEach { uuid ->
             uuid.fetchPlayer()
-                .sendMessage(text("<white>You ${Color.GREEN}successfully</color> enqueued for ${request.queueName}."))
+                .sendMessage(text("You ${Color.GREEN}successfully</color> enqueued for ${request.queueName}."))
         }
 
         return enqueueResponse {
@@ -34,9 +34,22 @@ class QueueInteractionService(
     }
 
     override suspend fun dequeue(request: DequeueRequest): DequeueResponse {
-        if (!queues.dequeue(request.playerIdsList.map { UUID.fromString(it) })) throw Status.INVALID_ARGUMENT.withDescription(
-            "Failed to dequeue: Might not be in queue"
-        ).log(logger).asRuntimeException()
+        if (!queues.dequeue(request.playerIdsList.map { UUID.fromString(it) })) {
+
+            request.playerIdsList.forEach { uuid ->
+                uuid.fetchPlayer()
+                    .sendMessage(text("${Color.RED}You aren't enqueued for any game."))
+            }
+
+            throw Status.INVALID_ARGUMENT.withDescription(
+                "Failed to dequeue: Might not be in queue"
+            ).log(logger).asRuntimeException()
+        }
+
+        request.playerIdsList.forEach { uuid ->
+            uuid.fetchPlayer()
+                .sendMessage(text("You successfully ${Color.RED}dequeued</color>."))
+        }
         return dequeueResponse { }
     }
 }
