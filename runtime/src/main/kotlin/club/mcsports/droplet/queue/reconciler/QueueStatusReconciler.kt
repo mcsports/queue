@@ -5,6 +5,7 @@ import app.simplecloud.droplet.player.api.PlayerApi
 import app.simplecloud.pubsub.PubSubClient
 import build.buf.gen.simplecloud.controller.v1.ServerState
 import build.buf.gen.simplecloud.controller.v1.ServerUpdateEvent
+import club.mcsports.droplet.queue.Glyphs
 import club.mcsports.droplet.queue.Queue
 import club.mcsports.droplet.queue.QueueRepository
 import club.mcsports.droplet.queue.QueueTypeRepository
@@ -16,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -205,7 +207,7 @@ class QueueStatusReconciler(
         val server = queue.server ?: return null
         val serverId = "${server.group}-${server.numericalId}"
         queue.players.forEach { playerId ->
-            playerApi.getOnlinePlayer(playerId).sendMessage(Component.text("Starting game on server $serverId..."))
+            playerApi.getOnlinePlayer(playerId).sendMessage(Glyphs.HOUR_GLASS.append(Component.text("Starting game on server $serverId...").color(NamedTextColor.WHITE)))
             playerApi.connectPlayer(playerId, serverId)
         }
         updateInternalState(queue.id, InternalState.FINISHED)

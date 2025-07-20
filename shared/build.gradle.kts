@@ -19,6 +19,7 @@ dependencies {
         exclude("io.grpc")
     }
     api(libs.bundles.grpc)
+    api(libs.minimessage.kotlin)
 }
 
 publishing {

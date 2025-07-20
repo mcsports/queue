@@ -1,14 +1,16 @@
 package club.mcsports.droplet.queue.hook
 
-import app.simplecloud.plugin.api.shared.extension.text
+
 import club.mcsports.droplet.party.api.PartyApi
 import club.mcsports.droplet.party.shared.extension.getMember
 import club.mcsports.droplet.queue.Color
+import club.mcsports.droplet.queue.Glyphs
 import club.mcsports.droplet.queue.extension.fetchPlayer
 import club.mcsports.droplet.queue.extension.log
 import com.mcsports.party.v1.PartyRole
 import io.grpc.Status
 import io.grpc.StatusException
+import net.kyori.adventure.text.Component
 import org.apache.logging.log4j.LogManager
 import java.util.*
 
@@ -40,7 +42,7 @@ class PartyDropletHook(authSecret: String) {
         val enqueueMember = party?.getMember(enqueueUuid) ?: return setOf()
 
         if (enqueueMember.role != PartyRole.OWNER) {
-            enqueuePlayer.sendMessage(text("${Color.RED} You must be the party owner in order to enqueue."))
+            enqueuePlayer.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("You must be the party owner in order to enqueue.").color(Color.RED)))
             throw Status.PERMISSION_DENIED.withDescription("Failed to enqueue: ${enqueueMember.name} isn't the party owner")
                 .log(logger).asRuntimeException()
         }

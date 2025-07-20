@@ -1,12 +1,13 @@
 package club.mcsports.droplet.queue
 
 import app.simplecloud.controller.shared.server.Server
-import app.simplecloud.plugin.api.shared.extension.text
+
 import club.mcsports.droplet.queue.extension.fetchPlayer
 import club.mcsports.droplet.queue.extension.log
 import club.mcsports.droplet.queue.reconciler.QueueStatusReconciler
 import com.mcsports.queue.v1.QueueStatus
 import io.grpc.Status
+import net.kyori.adventure.text.Component
 import org.apache.logging.log4j.LogManager
 import java.util.*
 
@@ -40,7 +41,7 @@ class QueueRepository(
         val type = types.find(queueType) ?: run {
             playerIds.forEach { uuid ->
                 val player = uuid.fetchPlayer()
-                player.sendMessage(text("${Color.RED}There's no queue with the name $queueType."))
+                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("There's no queue with the name $queueType.").color(Color.RED)))
             }
 
             throw Status.NOT_FOUND.withDescription("Failed to enqueue: Cannot find queue $queueType")
@@ -50,7 +51,7 @@ class QueueRepository(
         if (playerIds.any { playersToQueue.containsKey(it) }) {
             playerIds.forEach { uuid ->
                 val player = uuid.fetchPlayer()
-                player.sendMessage(text("${Color.RED}Some of the players you were enqueued with are already in a queue."))
+                player.sendMessage(Glyphs.HOUR_GLASS.append(Component.text("Some of the players you were enqueued with are already in a queue.").color(Color.RED)))
             }
 
             throw Status.FAILED_PRECONDITION.withDescription("Failed to enqueue: Some players are already in a queue")
